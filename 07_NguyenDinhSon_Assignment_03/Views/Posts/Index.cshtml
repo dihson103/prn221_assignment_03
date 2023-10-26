@@ -1,0 +1,174 @@
+﻿@using _07_NguyenDinhSon_Assignment_03.Utils;
+
+@{
+    ViewData["Title"] = "Index";
+    var pageIndex = Convert.ToInt32(ViewData["pageIndex"]);
+    var fromDate = DateTime.MinValue;
+    if (ViewData["fromDate"] is DateTime fromDateValue)
+    {
+        fromDate = fromDateValue;
+    };
+
+    var toDate = DateTime.MinValue;
+    if (ViewData["toDate"] is DateTime)
+    {
+        toDate = DateTime.Now;
+    }
+    var result = ViewData["Result"] as PaginatedList<Posts>;
+    var hasPrevDisabled = !result.HasPreviousPage ? "disabled" : "";
+    var hasNextDisabled = !result.HasNextPage ? "disabled" : "";
+    var searchValue = ViewData["searchValue"] as string;
+}
+
+<h1>Index @pageIndex @result.HasNextPage</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+
+<form class="row g-3 align-items-center mb-3 mt-3" method="get" asp-action="Index">
+    <div class="col-auto">
+        <input type="text" name="search" class="form-control" value="@searchValue" placeholder="Seach value" />
+    </div>
+    <input type="text" name="showAll" value="false" hidden/>
+    <div class="col-auto">
+        <label>From date</label>
+    </div>
+    <input name="pageIndex" value="@pageIndex" type="hidden" class="form-control" />
+    <div class="col-auto">
+        <input type="datetime" name="fromDate" value="@fromDate" class="form-control" />
+    </div>
+    <div class="col-auto">
+        <label>To date</label>
+    </div>
+    <div class="col-auto">
+        <input type="datetime" name="toDate" value="@toDate" class="form-control" />
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-secondary">Search</button>
+    </div>
+</form>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>AuthorId</th>
+            <th>
+                CreatedDate
+            </th>
+            <th>
+                UpdatedDate
+            </th>
+            <th>
+                Title
+            </th>
+            <th>
+                Content
+            </th>
+            <th>
+                PublishStatus
+            </th>
+          
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in result)
+        {
+        <tr id="post_@item.PostID">
+            <td>
+                @Html.DisplayFor(modelItem => item.AuthorID)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CreatedDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.UpdatedDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Title)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Content)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.PublishStatus)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CategoryID)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.PostID">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.PostID">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.PostID">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+
+<a
+    asp-page="/Posts/Index"
+    asp-route-pageIndex="@(pageIndex - 1)"
+    asp-route-fromDate="@fromDate"
+    asp-route-toDate="@toDate"
+   asp-route-showAll="true"
+    class="btn btn-primary @hasPrevDisabled"
+>Previous</a>
+
+<a asp-page="/Posts/Index"
+   asp-route-pageIndex="@(pageIndex + 1)"
+   asp-route-fromDate="@fromDate"
+   asp-route-toDate="@toDate"
+   asp-route-showAll="true"
+   class="btn btn-primary @hasNextDisabled">Next</a>
+
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/microsoft/signalr/dist/browser/signalr.js"></script>
+<script>
+    var connection = new signalR.HubConnectionBuilder().withUrl("/signalrServer").build();
+    connection.start();
+
+    const handleEditChange = (id) => {
+        var tr = '';
+        $.ajax({
+            url: '/Posts/SearchById',
+            method: 'GET',
+            data: {id:id},
+            success: (result) => {
+                console.log(result)
+                tr += `
+                        <td>${result.authorID}</td>
+                        <td>${result.createdDate}</td>
+                        <td>${result.updatedDate}</td>
+                            <td>${result.title}</td>
+                            <td>${result.content}</td>
+                            <td>${result.publishStatus}</td>
+                            <td>${result.categoryID}</td>
+                        <td>
+                            <a asp-action="Edit" asp-route-id="${id}">Edit</a> |
+                            <a asp-action="Details" asp-route-id="${id}">Details</a> |
+                            <a asp-action="Delete" asp-route-id="${id}">Delete</a>
+                        </td>
+                `;
+                $('#post_' + id).html(tr);
+            },
+            error: (error) => {
+                console.log(error);
+            }
+        });
+    }
+
+    connection.on("CreateNewPost", function () {
+        window.alert('There is a post was added')
+    });
+    connection.on("EditPost", function (id) {
+        handleEditChange(id)
+        window.alert('There is a post was edit' + id)
+    });
+    connection.on("DeletePost", function () {
+        window.alert('There is a post was delete')
+    });
+
+</script>
