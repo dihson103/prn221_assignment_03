@@ -29,13 +29,13 @@ namespace _07_NguyenDinhSon_Assignment_03.Controllers
         }
 
         // GET: Posts
-        public async Task<IActionResult> Index(int? pageIndex, DateTime fromDate, DateTime toDate, string? search, bool showAll)
+        public async Task<IActionResult> Index(int? pageIndex, DateTime fromDate, DateTime toDate, string? searchValue, bool showAll)
         {
             if(_context.Posts != null)
             {
                 
 
-                int pageSize = 1;
+                int pageSize = 3;
                 IQueryable<Posts> posts;
 
                 if (showAll)
@@ -44,7 +44,7 @@ namespace _07_NguyenDinhSon_Assignment_03.Controllers
                             select s;
                 }
 
-                else if (string.IsNullOrEmpty(search))
+                else if (string.IsNullOrEmpty(searchValue))
                 {
                     posts = from s in _context.Posts
                             where s.CreatedDate.CompareTo(fromDate) >= 0
@@ -56,7 +56,7 @@ namespace _07_NguyenDinhSon_Assignment_03.Controllers
                     posts = from s in _context.Posts
                             where s.CreatedDate.CompareTo(fromDate) >= 0
                             && s.CreatedDate.CompareTo(toDate) <= 0
-                            && (s.PostID.ToString().Contains(search) || s.Title.Contains(search) || s.Content.Contains(search))
+                            && (s.PostID.ToString().Contains(searchValue) || s.Title.Contains(searchValue) || s.Content.Contains(searchValue))
                             select s;
                 }
                 
@@ -66,7 +66,7 @@ namespace _07_NguyenDinhSon_Assignment_03.Controllers
                 ViewData["Result"] = results;
                 ViewData["fromDate"] = fromDate;
                 ViewData["toDate"] = toDate;
-                ViewData["searchValue"] = search;
+                ViewData["searchValue"] = searchValue;
                 return View();
             }
 
@@ -125,7 +125,7 @@ namespace _07_NguyenDinhSon_Assignment_03.Controllers
                 _context.Add(posts);
                 await _context.SaveChangesAsync();
                 _signalRHub.Clients.All.SendAsync("CreateNewPost");
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { showAll = true });
             }
             return View(posts);
         }
@@ -188,7 +188,7 @@ namespace _07_NguyenDinhSon_Assignment_03.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { showAll = true });
             }
             return View(posts);
         }
@@ -228,7 +228,7 @@ namespace _07_NguyenDinhSon_Assignment_03.Controllers
             
             await _context.SaveChangesAsync();
             _signalRHub.Clients.All.SendAsync("DeletePost");
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { showAll = true });
         }
 
         private bool PostsExists(int id)

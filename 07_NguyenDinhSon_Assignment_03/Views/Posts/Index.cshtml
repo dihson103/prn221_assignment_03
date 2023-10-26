@@ -20,7 +20,7 @@
     var searchValue = ViewData["searchValue"] as string;
 }
 
-<h1>Index @pageIndex @result.HasNextPage</h1>
+<h1>Index</h1>
 
 <p>
     <a asp-action="Create">Create New</a>
@@ -28,9 +28,10 @@
 
 <form class="row g-3 align-items-center mb-3 mt-3" method="get" asp-action="Index">
     <div class="col-auto">
-        <input type="text" name="search" class="form-control" value="@searchValue" placeholder="Seach value" />
+        <input type="text" name="searchValue" class="form-control" value="@searchValue" placeholder="Seach value" />
     </div>
     <input type="text" name="showAll" value="false" hidden/>
+    <input type="text" name="pageIndex" value="1" hidden />
     <div class="col-auto">
         <label>From date</label>
     </div>
@@ -112,6 +113,7 @@
     asp-route-pageIndex="@(pageIndex - 1)"
     asp-route-fromDate="@fromDate"
     asp-route-toDate="@toDate"
+   asp-route-searchValue="@searchValue"
    asp-route-showAll="true"
     class="btn btn-primary @hasPrevDisabled"
 >Previous</a>
@@ -120,6 +122,7 @@
    asp-route-pageIndex="@(pageIndex + 1)"
    asp-route-fromDate="@fromDate"
    asp-route-toDate="@toDate"
+   asp-route-searchValue="@searchValue"
    asp-route-showAll="true"
    class="btn btn-primary @hasNextDisabled">Next</a>
 
